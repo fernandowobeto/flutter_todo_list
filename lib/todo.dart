@@ -1,10 +1,5 @@
-import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
-
 import 'package:flutter/material.dart';
-import 'package:path_provider/path_provider.dart';
-
+import 'DataModel.dart';
 
 class ToDo extends StatefulWidget {
   @override
@@ -12,8 +7,8 @@ class ToDo extends StatefulWidget {
 }
 
 class _ToDoState extends State<ToDo> {
-
   final _toDoController = TextEditingController();
+  final _dataModel = DataModel();
 
   List _toDoList = [];
 
@@ -21,9 +16,15 @@ class _ToDoState extends State<ToDo> {
   void initState() {
     super.initState();
 
-    _readData().then((data) {
+    _dataModel.readData().then((map) {
       setState(() {
-        _toDoList = json.decode(data);
+        var data = map;
+
+        if (data == null) {
+          data = _dataModel.createInitialJsonData();
+        }
+
+        _toDoList = data['todo'];
       });
     });
   }
@@ -32,28 +33,12 @@ class _ToDoState extends State<ToDo> {
     setState(() {
       Map<String, dynamic> newToDo = Map();
       newToDo["title"] = _toDoController.text;
+      newToDo["status"] = 0;
       _toDoController.text = "";
-      newToDo["ok"] = false;
       _toDoList.add(newToDo);
 
-      _saveData();
+      _dataModel.saveTodoData(newToDo);
     });
-  }
-
-  Future<Null> _refresh() async{
-    await Future.delayed(Duration(seconds: 1));
-
-    setState(() {
-      _toDoList.sort((a, b){
-        if(a["ok"] && !b["ok"]) return 1;
-        else if(!a["ok"] && b["ok"]) return -1;
-        else return 0;
-      });
-
-      _saveData();
-    });
-
-    return null;
   }
 
   @override
@@ -66,13 +51,11 @@ class _ToDoState extends State<ToDo> {
             children: <Widget>[
               Expanded(
                   child: TextField(
-                    controller: _toDoController,
-                    decoration: InputDecoration(
-                        labelText: "Nova Tarefa",
-                        labelStyle: TextStyle(color: Colors.blueAccent)
-                    ),
-                  )
-              ),
+                controller: _toDoController,
+                decoration: InputDecoration(
+                    labelText: "Nova Tarefa",
+                    labelStyle: TextStyle(color: Colors.blueAccent)),
+              )),
               RaisedButton(
                 color: Colors.blueAccent,
                 child: Text("ADD"),
@@ -83,56 +66,21 @@ class _ToDoState extends State<ToDo> {
           ),
         ),
         Expanded(
-          child: RefreshIndicator(onRefresh: _refresh,
-            child: ListView.builder(
-                padding: EdgeInsets.only(top: 10.0),
-                itemCount: _toDoList.length,
-                itemBuilder: buildItem
-            ),
-          ),
+          child: ListView.builder(
+              padding: EdgeInsets.only(top: 10.0),
+              itemCount: _toDoList.length,
+              itemBuilder: buildItem),
         )
       ],
     );
   }
 
-  Widget buildItem(BuildContext context, int index){
-    return CheckboxListTile(
-      title: Text(_toDoList[index]["title"]),
-      value: _toDoList[index]["ok"],
-      secondary: CircleAvatar(
-        child: Icon(_toDoList[index]["ok"] ?
-        Icons.check : Icons.error
-        ),
+  Widget buildItem(BuildContext context, int index) {
+    return Card(
+      child: ListTile(
+        leading: Icon(Icons.add),
+        title: Text(_toDoList[index]["title"]),
       ),
-      onChanged: (c){
-        setState(() {
-          _toDoList[index]["ok"] = c;
-          _saveData();
-        });
-      },
     );
   }
-
-  Future<File> _getFile() async {
-    final directory = await getApplicationDocumentsDirectory();
-    return File("${directory.path}/data.json");
-  }
-
-  Future<File> _saveData() async {
-    String data = json.encode(_toDoList);
-
-    final file = await _getFile();
-    return file.writeAsString(data);
-  }
-
-  Future<String> _readData() async {
-    try {
-      final file = await _getFile();
-
-      return file.readAsString();
-    } catch (e) {
-      return null;
-    }
-  }
 }
-

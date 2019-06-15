@@ -1,9 +1,6 @@
-import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
-
 import 'package:flutter/material.dart';
-import 'package:path_provider/path_provider.dart';
+
+import 'DataModel.dart';
 
 
 class Done extends StatefulWidget {
@@ -13,18 +10,17 @@ class Done extends StatefulWidget {
 
 class _DoneState extends State<Done> {
 
-  List _toDoList = [];
+  DataModel _dataModel = DataModel();
 
-  Map<String, dynamic> _lastRemoved;
-  int _lastRemovedPos;
+  List _toDoList = [];
 
   @override
   void initState() {
     super.initState();
 
-    _readData().then((data) {
+    _dataModel.readData().then((map) {
       setState(() {
-        _toDoList = json.decode(data);
+        _toDoList = map["done"];
       });
     });
   }
@@ -59,31 +55,21 @@ class _DoneState extends State<Done> {
         title: Text(_toDoList[index]["title"]),
         value: _toDoList[index]["ok"],
         secondary: CircleAvatar(
-          child: Icon(_toDoList[index]["ok"] ?
-          Icons.check : Icons.error),),
+          child: Icon(Icons.done),),
         onChanged: (c){
           setState(() {
-            _toDoList[index]["ok"] = c;
-            _saveData();
+            _toDoList[index]["ok"] = 2;
+            _dataModel.saveDoneData(_toDoList[index]);
           });
         },
       ),
       onDismissed: (direction){
         setState(() {
-          _lastRemoved = Map.from(_toDoList[index]);
-          _lastRemovedPos = index;
-          _toDoList.removeAt(index);
-
-          _saveData();
-
           final snack = SnackBar(
-            content: Text("Tarefa \"${_lastRemoved["title"]}\" removida!"),
+            content: Text("Tarefa \"${_toDoList[index]["title"]}\" removida!"),
             action: SnackBarAction(label: "Desfazer",
                 onPressed: () {
-                  setState(() {
-                    _toDoList.insert(_lastRemovedPos, _lastRemoved);
-                    _saveData();
-                  });
+
                 }),
             duration: Duration(seconds: 2),
           );
@@ -94,28 +80,6 @@ class _DoneState extends State<Done> {
         });
       },
     );
-  }
-
-  Future<File> _getFile() async {
-    final directory = await getApplicationDocumentsDirectory();
-    return File("${directory.path}/data.json");
-  }
-
-  Future<File> _saveData() async {
-    String data = json.encode(_toDoList);
-
-    final file = await _getFile();
-    return file.writeAsString(data);
-  }
-
-  Future<String> _readData() async {
-    try {
-      final file = await _getFile();
-
-      return file.readAsString();
-    } catch (e) {
-      return null;
-    }
   }
 
 }
