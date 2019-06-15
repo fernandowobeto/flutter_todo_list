@@ -81,10 +81,9 @@ class _DoneState extends State<Done> {
           _toDoModel.addData(copied);
         }
 
-        _doneModel.saveData(_doneList);
-
         setState(() {
           _doneList.removeAt(index);
+          _doneModel.saveData(_doneList);
         });
       },
     );
