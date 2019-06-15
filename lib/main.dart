@@ -6,6 +6,7 @@ import 'trash.dart';
 
 void main(){
   runApp(MaterialApp(
+    debugShowCheckedModeBanner: false,
     home: DefaultTabController(
       length: 3,
       child: Scaffold(

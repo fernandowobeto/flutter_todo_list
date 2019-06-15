@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-
-import 'DataModel.dart';
-
+import 'ToDoModel.dart';
+import 'DoneModel.dart';
+import 'TrashModel.dart';
 
 class Done extends StatefulWidget {
   @override
@@ -9,18 +9,21 @@ class Done extends StatefulWidget {
 }
 
 class _DoneState extends State<Done> {
+  List _doneList = [];
 
-  DataModel _dataModel = DataModel();
-
-  List _toDoList = [];
+  ToDoModel _toDoModel = ToDoModel();
+  DoneModel _doneModel = DoneModel();
+  TrashModel _trashModel = TrashModel();
 
   @override
   void initState() {
     super.initState();
 
-    _dataModel.readData().then((map) {
+    _doneModel.readData().then((list) {
       setState(() {
-        _toDoList = map["done"];
+        if (list != null) {
+          _doneList = list;
+        }
       });
     });
   }
@@ -32,55 +35,58 @@ class _DoneState extends State<Done> {
         Expanded(
           child: ListView.builder(
               padding: EdgeInsets.only(top: 10.0),
-              itemCount: _toDoList.length,
-              itemBuilder: buildItem
-          ),
+              itemCount: _doneList.length,
+              itemBuilder: buildItem),
         )
       ],
     );
   }
 
-  Widget buildItem(BuildContext context, int index){
+  Widget buildItem(BuildContext context, int index) {
     return Dismissible(
       key: Key(DateTime.now().millisecondsSinceEpoch.toString()),
       background: Container(
         color: Colors.red,
         child: Align(
           alignment: Alignment(-0.9, 0.0),
-          child: Icon(Icons.delete, color: Colors.white,),
+          child: Icon(
+            Icons.delete,
+            color: Colors.white,
+          ),
         ),
       ),
-      direction: DismissDirection.startToEnd,
-      child: CheckboxListTile(
-        title: Text(_toDoList[index]["title"]),
-        value: _toDoList[index]["ok"],
-        secondary: CircleAvatar(
-          child: Icon(Icons.done),),
-        onChanged: (c){
-          setState(() {
-            _toDoList[index]["ok"] = 2;
-            _dataModel.saveDoneData(_toDoList[index]);
-          });
-        },
+      secondaryBackground: Container(
+        color: Colors.blue,
+        child: Align(
+          alignment: Alignment(0.9, 0.0),
+          child: Icon(
+            Icons.add_box,
+            color: Colors.white,
+          ),
+        ),
       ),
-      onDismissed: (direction){
+      direction: DismissDirection.horizontal,
+      child: Card(
+        child: ListTile(
+          leading: Icon(Icons.add),
+          title: Text(_doneList[index]["title"]),
+        ),
+      ),
+      onDismissed: (DismissDirection direction) {
+        Map<String, dynamic> copied = Map.from(_doneList[index]);
+
+        if(direction == DismissDirection.startToEnd){
+          _trashModel.addData(copied);
+        }else{
+          _toDoModel.addData(copied);
+        }
+
+        _doneModel.saveData(_doneList);
+
         setState(() {
-          final snack = SnackBar(
-            content: Text("Tarefa \"${_toDoList[index]["title"]}\" removida!"),
-            action: SnackBarAction(label: "Desfazer",
-                onPressed: () {
-
-                }),
-            duration: Duration(seconds: 2),
-          );
-
-          Scaffold.of(context).removeCurrentSnackBar();
-          Scaffold.of(context).showSnackBar(snack);
-
+          _doneList.removeAt(index);
         });
       },
     );
   }
-
 }
-

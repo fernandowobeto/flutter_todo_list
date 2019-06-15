@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'DataModel.dart';
+import 'ToDoModel.dart';
+import 'DoneModel.dart';
 
 class ToDo extends StatefulWidget {
   @override
@@ -8,7 +9,8 @@ class ToDo extends StatefulWidget {
 
 class _ToDoState extends State<ToDo> {
   final _toDoController = TextEditingController();
-  final _dataModel = DataModel();
+  final _dataModel = ToDoModel();
+  final _doneModel = DoneModel();
 
   List _toDoList = [];
 
@@ -16,15 +18,11 @@ class _ToDoState extends State<ToDo> {
   void initState() {
     super.initState();
 
-    _dataModel.readData().then((map) {
+    _dataModel.readData().then((list) {
       setState(() {
-        var data = map;
-
-        if (data == null) {
-          data = _dataModel.createInitialJsonData();
+        if (list != null) {
+          _toDoList = list;
         }
-
-        _toDoList = data['todo'];
       });
     });
   }
@@ -33,11 +31,10 @@ class _ToDoState extends State<ToDo> {
     setState(() {
       Map<String, dynamic> newToDo = Map();
       newToDo["title"] = _toDoController.text;
-      newToDo["status"] = 0;
       _toDoController.text = "";
       _toDoList.add(newToDo);
 
-      _dataModel.saveTodoData(newToDo);
+      _dataModel.saveData(_toDoList);
     });
   }
 
@@ -76,11 +73,36 @@ class _ToDoState extends State<ToDo> {
   }
 
   Widget buildItem(BuildContext context, int index) {
-    return Card(
-      child: ListTile(
-        leading: Icon(Icons.add),
-        title: Text(_toDoList[index]["title"]),
+    return Dismissible(
+      key: Key(DateTime.now().millisecondsSinceEpoch.toString()),
+      background: Container(
+        color: Colors.green,
+        child: Align(
+          alignment: Alignment(-0.9, 0.0),
+          child: Icon(
+            Icons.done_all,
+            color: Colors.white,
+          ),
+        ),
       ),
+      direction: DismissDirection.startToEnd,
+      child: Card(
+        child: ListTile(
+          leading: Icon(Icons.add),
+          title: Text(_toDoList[index]["title"]),
+        ),
+      ),
+      onDismissed: (direction) {
+        setState(() {
+          Map<String, dynamic> copied = Map.from(_toDoList[index]);
+
+          _doneModel.addData(copied);
+
+          _toDoList.removeAt(index);
+
+          _dataModel.saveData(_toDoList);
+        });
+      },
     );
   }
 }
