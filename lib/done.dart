@@ -68,7 +68,7 @@ class _DoneState extends State<Done> {
       direction: DismissDirection.horizontal,
       child: Card(
         child: ListTile(
-          leading: Icon(Icons.add),
+          leading: Icon(Icons.done_all),
           title: Text(_doneList[index]["title"]),
         ),
       ),

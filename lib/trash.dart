@@ -56,16 +56,16 @@ class _TrashState extends State<Trash> {
       direction: DismissDirection.endToStart,
       child: Card(
         child: ListTile(
-          leading: Icon(Icons.add),
+          leading: Icon(Icons.delete),
           title: Text(_trashList[index]["title"]),
         ),
       ),
       onDismissed: (direction) {
+        Map<String, dynamic> copied = Map.from(_trashList[index]);
+
+        _doneModel.addData(copied);
+
         setState(() {
-          Map<String, dynamic> copied = Map.from(_trashList[index]);
-
-          _doneModel.addData(copied);
-
           _trashList.removeAt(index);
 
           _trashModel.saveData(_trashList);
