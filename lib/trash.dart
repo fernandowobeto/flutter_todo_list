@@ -35,6 +35,24 @@ class _TrashState extends State<Trash> {
               padding: EdgeInsets.only(top: 10.0),
               itemCount: _trashList.length,
               itemBuilder: buildItem),
+        ),
+        Align(
+          alignment: Alignment.topRight,
+          child: Padding(
+            padding: EdgeInsets.all(10.0),
+            child: FloatingActionButton(
+              onPressed: () {
+                if(_trashList.length > 0){
+                  _showDialog();
+                }
+              },
+              child: Icon(Icons.clear),
+              foregroundColor: Colors.white,
+              backgroundColor: Colors.red,
+              elevation: 3.0,
+              heroTag: "fab",
+            ),
+          ),
         )
       ],
     );
@@ -73,4 +91,41 @@ class _TrashState extends State<Trash> {
       },
     );
   }
+
+  void _showDialog() {
+    // flutter defined function
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        // return object of type Dialog
+        return AlertDialog(
+          title: new Text("Confirma?"),
+          content: new Text("Deseja mesmo limpar a lixeira?"),
+          actions: <Widget>[
+            // usually buttons at the bottom of the dialog
+
+            FlatButton(
+              child: new Text("Confirma"),
+              onPressed: () {
+                setState(() {
+                  _trashList = [];
+
+                  _trashModel.saveData(_trashList);
+
+                  Navigator.of(context).pop();
+                });
+              },
+            ),
+            FlatButton(
+              child: new Text("Cancelar"),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            )
+          ],
+        );
+      },
+    );
+  }
+
 }
