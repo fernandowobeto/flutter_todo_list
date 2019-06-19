@@ -18,7 +18,21 @@ void main(){
               Tab(icon: Icon(Icons.restore_from_trash), text: 'Lixeira',)
             ],
           ),
-          title: Text('Lista de Tarefas'),
+          title: Row(
+            children: <Widget>[
+              Expanded(
+                child: Text('Lista de Tarefas'),
+              ),
+              IconButton(
+                icon: Icon(Icons.help),
+                color: Colors.white,
+                onPressed: (){
+
+                },
+                alignment: Alignment(1.0, 0.0),
+              )
+            ],
+          ),
         ),
         body: TabBarView(
           children: [
