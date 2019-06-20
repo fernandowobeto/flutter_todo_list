@@ -19,13 +19,15 @@ class _DoneState extends State<Done> {
   void initState() {
     super.initState();
 
-    _doneModel.readData().then((list) {
-      setState(() {
-        if (list != null) {
-          _doneList = list;
-        }
+    if(mounted){
+      _doneModel.readData().then((list) {
+        setState(() {
+          if (list != null) {
+            _doneList = list;
+          }
+        });
       });
-    });
+    }
   }
 
   @override
