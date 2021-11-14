@@ -29,7 +29,7 @@ class ToDoModel {
     });
   }
 
-  Future<List> readData() async {
+  Future<List?> readData() async {
     try {
       final file = await _getFile();
 
